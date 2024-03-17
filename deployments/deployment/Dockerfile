@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 RUN go mod tidy
-RUN go build cmd/main.go
+RUN go build cmd/h-project/main.go
 
 RUN ls -alp .
 

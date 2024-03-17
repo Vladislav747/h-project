@@ -2,9 +2,11 @@ version: '3'
 
 services:
   go-app:
-    build: .
+    build:
+      context: ../..
+      dockerfile: deployments/deployment/Dockerfile
     restart: unless-stopped
-    ports: [ "3000:3000" ]
+    ports: [ "8080:3000" ]
     volumes:
       - .:/go/src/app
     env_file:
