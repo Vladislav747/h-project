@@ -1,4 +1,4 @@
-include scripts/scripts.mk
+include scripts/*.mk
 
 test:
 	@go test -v ./...
