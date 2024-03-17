@@ -1,0 +1,21 @@
+version: '3.5'
+
+services:
+    go-app:
+      build:
+        context: ../..
+        dockerfile: deployments/development/Dockerfile
+      restart: unless-stopped
+      networks:
+        - development
+      ports:
+        - ${APPLICATION_PORT}:${APPLICATION_PORT}
+      volumes:
+        - .:/go/src/app
+      env_file:
+        - .env.local
+
+networks:
+  development:
+    driver: bridge
+    name: development

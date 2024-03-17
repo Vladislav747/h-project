@@ -26,4 +26,4 @@ build:
 		-o bin/api cmd/h-project/main.go
 
 run:
-	@go run ./cmd/h-project
+	. deployments/development/.env.local && go run ./cmd/h-project

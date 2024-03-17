@@ -2,7 +2,7 @@ services:
   go-app:
     build:
       context: ../..
-      dockerfile: deployments/deployment/Dockerfile
+      dockerfile: ../development/Dockerfile
     restart: unless-stopped
     networks:
       - development
