@@ -1,52 +1,26 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"h-project/api"
-	"net/http"
+	"h-project/internal/application"
+	"h-project/version"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func main() {
 
+	name := version.APIName
+	version := version.APIVersion
+
 	port := os.Getenv("APPLICATION_PORT")
-	if port == "" {
-		fmt.Println("APPLICATION_PORT is not set. Using default port :8080")
-		port = ":8080" // Значение порта по умолчанию
-	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", api.HomeHandler)
-	mux.HandleFunc("/status", api.StatusHandler)
+	app := application.NewApplication()
 
-	server := &http.Server{
-		Addr:         port,
-		Handler:      mux,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout:  15 * time.Second,
-	}
+	app.Name = name
+	app.Version = version
+	app.Port = port
 
-	fmt.Printf("Server is running on http://localhost%s\n", port)
-
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		// Create a deadline to wait for.
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		_ = <-stopChan
-		fmt.Println("Gracefully shutting down...")
-		_ = server.Shutdown(ctx)
-	}()
-
-	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		fmt.Printf("Error starting server: %s\n", err)
-	}
+	app.Run()
 
 	fmt.Println("App Starting")
 }

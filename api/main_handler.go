@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"h-project/version"
 	"net/http"
 	"time"
 )
@@ -24,11 +25,14 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StatusHandler(w http.ResponseWriter, _ *http.Request) {
+	name := version.APIName
+	version := version.APIVersion
+
 	response := StatusResponse{
-		ServiceName: "MyService",
+		ServiceName: name,
 		Status:      "OK",
 		Timestamp:   time.Now(),
-		Version:     "1.0.0",
+		Version:     version,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
