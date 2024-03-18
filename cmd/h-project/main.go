@@ -10,15 +10,19 @@ import (
 func main() {
 
 	name := version.APIName
-	version := version.APIVersion
+	versionName := version.APIVersion
+
+	handler := application.NewHTTPHandler(name, versionName)
 
 	port := os.Getenv("APPLICATION_PORT")
 
 	app := application.NewApplication()
 
 	app.Name = name
-	app.Version = version
+	app.Version = versionName
 	app.Port = port
+
+	app.RegisterHTTPHandler(handler)
 
 	app.Run()
 
