@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"h-project/api"
 	"h-project/version"
 	"log/slog"
 	"net/http"
@@ -37,20 +36,18 @@ func NewApplication() *Application {
 		ctx:    ctx,
 	}
 
-	// Create a new instance of http.ServeMux
-	mux := http.NewServeMux()
-	// Register your handlers
-	mux.HandleFunc("/", api.HomeHandler)
-	mux.HandleFunc("/status", api.StatusHandler)
-
 	app.httpServer = &http.Server{
-		Handler:      mux, // Use the newly created mux with your routes
+		Handler:      http.DefaultServeMux, // Use the newly created mux with your routes
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
 
 	return app
+}
+
+func (app *Application) RegisterHTTPHandler(handler http.Handler) {
+	app.httpServer.Handler = handler
 }
 
 func (app *Application) Run() {
