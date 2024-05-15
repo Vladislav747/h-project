@@ -15,21 +15,6 @@ services:
       env_file:
         - .env.local
 
-    postgres:
-      restart: always
-      image: postgres:13.1-alpine
-      command: postgres -c config_file=/etc/postgresql/postgresql.conf
-      env_file:
-        - .env.local
-      ports:
-        - ${DB_PORT}:${DB_PORT}
-      volumes:
-        - ./postgres/data:/var/lib/postgresql/data
-        - ./postgres/backups:/backups
-        - ./postgresql.conf:/etc/postgresql/postgresql.conf
-      networks:
-        - development
-
 networks:
   development:
     driver: bridge
