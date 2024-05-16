@@ -24,10 +24,8 @@ type Application struct {
 	logger     *slog.Logger
 }
 
-func NewApplication() *Application {
+func NewApplication(logger *slog.Logger) *Application {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	app := &Application{
 		logger: logger,

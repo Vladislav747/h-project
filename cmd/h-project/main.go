@@ -8,6 +8,7 @@ import (
 	"h-project/internal/application"
 	"h-project/version"
 	"log"
+	"log/slog"
 	"os"
 )
 
@@ -24,17 +25,19 @@ func main() {
 		DBName:   os.Getenv("DB_NAME"),
 		TimeZone: os.Getenv("TIMEZONE"),
 	}
-	_, err := dbSqlx.NewDB(ctx, conf)
+	db, err := dbSqlx.NewDB(ctx, conf)
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	handler := application.NewHTTPHandler(name, versionName)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	handler := application.NewHTTPHandler(name, versionName, db, logger)
 
 	port := os.Getenv("APPLICATION_PORT")
 
-	app := application.NewApplication()
+	app := application.NewApplication(logger)
 
 	app.Name = name
 	app.Version = versionName
