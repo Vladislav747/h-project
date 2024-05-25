@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/joho/godotenv"
 	"h-project/config"
 	dbSqlx "h-project/db"
 	"h-project/internal/application"
@@ -13,7 +14,6 @@ import (
 )
 
 func main() {
-
 	name := version.APIName
 	versionName := version.APIVersion
 	ctx := context.Background()
@@ -52,4 +52,10 @@ func main() {
 	fmt.Println("App Starting")
 
 	app.Run()
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
