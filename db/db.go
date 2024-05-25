@@ -8,6 +8,7 @@ import (
 	_ "github.com/lib/pq" // Импорт драйвера PostgreSQL
 	"h-project/config"
 	"h-project/internal/entity"
+	"log/slog"
 	"strconv"
 )
 
@@ -53,8 +54,10 @@ func (db *DB) Select(dest interface{}, query string, args ...interface{}) error 
 func (db *DB) Get(dest interface{}, query string, args ...interface{}) error {
 	return db.pg.GetContext(db.ctx, dest, query, args...)
 }
-func (db *DB) Close() {
-	_ = db.pg.Close()
+func (db *DB) Close(logger *slog.Logger) error {
+	logger.Info("Closing DB")
+	return db.pg.Close()
+
 }
 func (db *DB) GetCompanies() (*[]entity.Company, error) {
 	var companies []entity.Company

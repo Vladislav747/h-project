@@ -22,6 +22,8 @@ type Application struct {
 
 	httpServer *http.Server
 	logger     *slog.Logger
+
+	closeFuncs []func() error
 }
 
 func NewApplication(logger *slog.Logger) *Application {
@@ -48,6 +50,10 @@ func (app *Application) RegisterHTTPHandler(handler http.Handler) {
 	app.httpServer.Handler = handler
 }
 
+func (app *Application) AddCloser(closer func() error) {
+	app.closeFuncs = append(app.closeFuncs, closer)
+}
+
 func (app *Application) Run() {
 	if app.Port == "" {
 		app.Port = "80"
@@ -69,6 +75,16 @@ func (app *Application) Run() {
 			"error listening and serving",
 			"error", err,
 		)
+	}
+
+	// Вызываем все функции из списка closeFuncs
+	for _, closer := range app.closeFuncs {
+		if err := closer(); err != nil {
+			app.logger.Error(
+				"error calling closer function",
+				"error", err,
+			)
+		}
 	}
 
 	app.cancel()

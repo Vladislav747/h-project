@@ -45,7 +45,11 @@ func main() {
 
 	app.RegisterHTTPHandler(handler)
 
-	app.Run()
+	app.AddCloser(func() error {
+		return db.Close(logger)
+	})
 
 	fmt.Println("App Starting")
+
+	app.Run()
 }
