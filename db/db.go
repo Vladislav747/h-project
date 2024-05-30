@@ -3,13 +3,10 @@ package db
 import (
 	"context"
 	_ "embed"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Импорт драйвера PostgreSQL
-	"h-project/config"
 	"h-project/internal/entity"
 	"log/slog"
-	"strconv"
 )
 
 //go:embed sql/selectCompanies.sql
@@ -23,13 +20,8 @@ type DB struct {
 	ctx context.Context
 }
 
-func NewDB(ctx context.Context, conf config.Config) (*DB, error) {
-	port, err := strconv.ParseInt(conf.Port, 10, 0)
-	if err != nil {
-		fmt.Println("Error converting string to integer:", err)
-		return nil, err
-	}
-	conn, err := sqlx.Connect("postgres", fmt.Sprintf("host=%s port=%d password=%s user=%s dbname=%s sslmode=disable timezone='%s'", conf.Host, port, conf.Password, conf.User, conf.DBName, conf.TimeZone))
+func NewDB(ctx context.Context, dsn string) (*DB, error) {
+	conn, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/joho/godotenv"
-	"h-project/config"
 	dbSqlx "h-project/db"
 	"h-project/internal/application"
 	"h-project/version"
@@ -17,15 +16,9 @@ func main() {
 	name := version.APIName
 	versionName := version.APIVersion
 	ctx := context.Background()
-	conf := config.Config{
-		Host:     os.Getenv("HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Password: os.Getenv("DB_PASSWORD"),
-		User:     os.Getenv("DB_USER"),
-		DBName:   os.Getenv("DB_NAME"),
-		TimeZone: os.Getenv("TIMEZONE"),
-	}
-	db, err := dbSqlx.NewDB(ctx, conf)
+	dsn := os.Getenv("DSN")
+	log.Println(dsn, "DSN")
+	db, err := dbSqlx.NewDB(ctx, dsn)
 
 	if err != nil {
 		log.Fatalln(err)

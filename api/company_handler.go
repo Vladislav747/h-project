@@ -25,10 +25,11 @@ func (h *CompanyHandler) HandleGetCompanies(w http.ResponseWriter, _ *http.Reque
 	companies, err := h.store.GetCompanies()
 	if err != nil {
 		h.logger.Error(err.Error())
-		http.Error(w, "No companies", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(companies)
 }
 
@@ -39,7 +40,7 @@ func (h *CompanyHandler) HandleCreateCompany(w http.ResponseWriter, r *http.Requ
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		h.logger.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -48,14 +49,17 @@ func (h *CompanyHandler) HandleCreateCompany(w http.ResponseWriter, r *http.Requ
 	err = json.Unmarshal(body, &company)
 	if err != nil {
 		h.logger.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = h.store.AddCompany(&company)
 	if err != nil {
 		h.logger.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	return
 }
