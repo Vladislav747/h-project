@@ -74,6 +74,8 @@ func (h *CompanyHandler) HandleCreateCompany(w http.ResponseWriter, r *http.Requ
 
 	if err != nil {
 		h.logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	err = h.store.AddCompany(&company)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/joho/godotenv"
 	dbSqlx "h-project/db"
 	"h-project/internal/application"
@@ -52,7 +51,7 @@ func main() {
 		return db.Close(logger)
 	})
 
-	fmt.Println("App Starting")
+	logger.Info("App Starting")
 
 	app.Run()
 }

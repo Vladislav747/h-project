@@ -59,7 +59,6 @@ func (c *Client) UploadFile(ctx context.Context, fileId, fileName, bucketName st
 	}
 
 	c.logger.Debug("put new object" + fileName + " in bucket " + bucketName)
-	fmt.Print(reader, "reader")
 
 	_, err := c.minioClient.PutObject(reqCtx, bucketName, fileId, reader, fileSize,
 		minio.PutObjectOptions{
