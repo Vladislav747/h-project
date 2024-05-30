@@ -1,23 +1,29 @@
 package api
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"h-project/db"
 	"h-project/internal/entity"
+	"h-project/internal/file"
 	"io/ioutil"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type CompanyHandler struct {
-	store  *db.DB
-	logger *slog.Logger
+	store       *db.DB
+	fileService file.Service
+	logger      *slog.Logger
 }
 
-func NewCompanyHandler(store *db.DB, logger *slog.Logger) *CompanyHandler {
+func NewCompanyHandler(store *db.DB, fileService file.Service, logger *slog.Logger) *CompanyHandler {
 	return &CompanyHandler{
-		store:  store,
-		logger: logger,
+		store:       store,
+		fileService: fileService,
+		logger:      logger,
 	}
 }
 
@@ -51,6 +57,23 @@ func (h *CompanyHandler) HandleCreateCompany(w http.ResponseWriter, r *http.Requ
 		h.logger.Error(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	name := company.Name + time.Now().String()
+	reader := bytes.NewReader([]byte(name))
+	dto := file.CreateFileDTO{
+		Name:   name,
+		Size:   int64(len(name)),
+		Reader: reader,
+	}
+
+	//Передача данных в бакет
+	ctx := context.Background()
+
+	err = h.fileService.Create(ctx, file.BUCKET_NAME, dto)
+
+	if err != nil {
+		h.logger.Error(err.Error())
 	}
 
 	err = h.store.AddCompany(&company)
