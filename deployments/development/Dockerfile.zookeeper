@@ -1,0 +1,7 @@
+FROM confluentinc/cp-zookeeper:7.5.3
+
+USER root
+
+WORKDIR /etc/zookeeper
+
+CMD ["/etc/confluent/docker/run"]

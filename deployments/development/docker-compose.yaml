@@ -1,5 +1,23 @@
 version: '3.5'
 
+x-kafka-broker-env-base: &kafka_broker_env_base
+  KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
+  KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  KAFKA_CONFLUENT_TOPIC_REPLICATION_FACTOR: 2
+
+x-kafka-broker-base: &kafka_broker_base
+  image: kafka-jmx
+  healthcheck:
+    test: kafka-topics --bootstrap-server localhost:9092 --list || exit 1
+    start_period: 30s
+    timeout: 5s
+    interval: 3s
+    retries: 100
+  depends_on:
+    - zookeeper
+
+
 services:
     go-app:
       build:
@@ -13,7 +31,94 @@ services:
       volumes:
         - .:/go/src/app
       env_file:
-        - .env.local
+        - .env
+      depends_on:
+        - postgres
+
+    postgres:
+      restart: always
+      image: postgres:13.1-alpine
+      env_file:
+        - .env
+      ports:
+        - ${DB_PORT}:${DB_PORT}
+      volumes:
+        - ./postgres/data:/var/lib/postgresql/data
+        - ./postgres/backups:/backups
+        - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      networks:
+        - development
+
+    zookeeper:
+      image: zookeeper-jmx
+      hostname: zookeeper
+      container_name: zookeeper
+      ports:
+        - "2181:2181"
+      environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+      healthcheck:
+        test: jps -l | grep zookeeper || exit 1
+        start_period: 1s
+        timeout: 5s
+        interval: 3s
+        retries: 100
+
+    kafka1:
+      <<: *kafka_broker_base
+      container_name: kafka1
+      ports:
+        - "19092:19092"
+      environment:
+        <<: *kafka_broker_env_base
+        KAFKA_BROKER_ID: 1
+        KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:19092,INTERNAL://kafka1:9092
+
+
+    prometheus:
+      image: prom/prometheus:v2.49.1
+      container_name: prometheus
+      command:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+      ports:
+        - "9090:9090"
+      restart: unless-stopped
+      volumes:
+        - ./prometheus:/etc/prometheus
+        #- ./prometheus/prom_data:/prometheus
+      depends_on:
+        - kafka1
+
+
+    grafana:
+      container_name: grafana_cp
+      image: grafana/grafana:10.3.1
+      user: root
+      restart: always
+      environment:
+        GF_INSTALL_PLUGINS: 'grafana-piechart-panel'
+      ports:
+        - "3005:3005"
+      volumes:
+        - ./grafana/data:/var/lib/grafana
+        - ./grafana/provisioning/:/etc/grafana/provisioning/
+      depends_on:
+        - prometheus
+
+    s3:
+      image: quay.io/minio/minio:RELEASE.2022-08-13T21-54-44Z
+      command: minio server /data
+      ports:
+        - "9000:9000"
+      environment:
+        MINIO_ROOT_USER: minio
+        MINIO_ROOT_PASSWORD: minio123
+        MINIO_ACCESS_KEY: minio_access_key
+        MINIO_SECRET_KEY: minio_secret_key
+      restart: always
+      networks:
+        - development
 
 networks:
   development:
