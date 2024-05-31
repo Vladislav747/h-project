@@ -76,35 +76,35 @@ services:
         KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:19092,INTERNAL://kafka1:9092
 
 
-#    prometheus:
-#      image: prom/prometheus:v2.49.1
-#      container_name: prometheus
-#      command:
-#        - '--config.file=/etc/prometheus/prometheus.yml'
-#      ports:
-#        - "9090:9090"
-#      restart: unless-stopped
-#      volumes:
-#        - ./prometheus:/etc/prometheus
-#        #- ./prometheus/prom_data:/prometheus
-#      depends_on:
-#        - broker
+    prometheus:
+      image: prom/prometheus:v2.49.1
+      container_name: prometheus
+      command:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+      ports:
+        - "9090:9090"
+      restart: unless-stopped
+      volumes:
+        - ./prometheus:/etc/prometheus
+        #- ./prometheus/prom_data:/prometheus
+      depends_on:
+        - kafka1
 
 
-#    grafana:
-#      container_name: grafana_cp
-#      image: grafana/grafana:10.3.1
-#      user: root
-#      restart: always
-#      environment:
-#        GF_INSTALL_PLUGINS: 'grafana-piechart-panel'
-#      ports:
-#        - "3005:3005"
-#      volumes:
-#        - ./grafana/data:/var/lib/grafana
-#        - ./grafana/provisioning/:/etc/grafana/provisioning/
-#      depends_on:
-#        - prometheus
+    grafana:
+      container_name: grafana_cp
+      image: grafana/grafana:10.3.1
+      user: root
+      restart: always
+      environment:
+        GF_INSTALL_PLUGINS: 'grafana-piechart-panel'
+      ports:
+        - "3005:3005"
+      volumes:
+        - ./grafana/data:/var/lib/grafana
+        - ./grafana/provisioning/:/etc/grafana/provisioning/
+      depends_on:
+        - prometheus
 
     s3:
       image: quay.io/minio/minio:RELEASE.2022-08-13T21-54-44Z
