@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"h-project/internal/kafka/constants"
 	"log/slog"
 	"os"
 )
@@ -20,7 +21,7 @@ func NewKafkaConsumer(topic string, logger *slog.Logger) (*kafkaConsumer, error)
 	logger.Debug("Starting kafka consumer")
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
-		"group.id":          "myGroup",
+		"group.id":          constants.KafkaGroupId,
 		"auto.offset.reset": "earliest",
 	})
 
