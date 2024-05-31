@@ -3,6 +3,7 @@ package consumer
 import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"log/slog"
+	"os"
 )
 
 type DataConsumer interface {
@@ -18,15 +19,17 @@ type kafkaConsumer struct {
 func NewKafkaConsumer(topic string, logger *slog.Logger) (*kafkaConsumer, error) {
 	logger.Debug("Starting kafka consumer")
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		//Перевести в env
-		"bootstrap.servers": "localhost:19092",
+		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
 		"group.id":          "myGroup",
 		"auto.offset.reset": "earliest",
 	})
 
 	if err != nil {
+		logger.Error("Kafka consumer error when starting ", "port", os.Getenv("KAFKA_BOOTSTRAP_SERVERS"))
 		return nil, err
 	}
+
+	logger.Info("Kafka consumer started on server ", "port", os.Getenv("KAFKA_BOOTSTRAP_SERVERS"))
 
 	c.SubscribeTopics([]string{topic}, nil)
 
