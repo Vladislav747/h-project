@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Импорт драйвера PostgreSQL
 	"h-project/internal/entity"
+	"log"
 	"log/slog"
 )
 
@@ -21,6 +22,7 @@ type DB struct {
 }
 
 func NewDB(ctx context.Context, dsn string) (*DB, error) {
+	log.Println(dsn, "DSN 2")
 	conn, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, err

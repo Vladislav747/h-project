@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"h-project/internal/entity"
+	"log/slog"
 )
 
 type DataProducer interface {
@@ -16,9 +17,12 @@ type KafkaProducer struct {
 	topic    string
 }
 
-func NewKafkaProducer(topic string) (DataProducer, error) {
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
+func NewKafkaProducer(topic string, logger *slog.Logger) (DataProducer, error) {
+	p, err := kafka.NewProducer(&kafka.ConfigMap{
+		"bootstrap.servers": "localhost:19092",
+	})
 	if err != nil {
+		logger.Error("Error creating kafka producer", "error", err)
 		return nil, err
 	}
 	// Delivery report handler for produced messages

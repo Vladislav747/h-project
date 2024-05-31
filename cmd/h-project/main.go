@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/joho/godotenv"
 	dbSqlx "h-project/db"
 	"h-project/internal/application"
 	"h-project/internal/file"
 	"h-project/internal/file/storage/minio"
+	consumerLib "h-project/internal/kafka/consumer"
+	"h-project/internal/kafka/producer"
 	"h-project/version"
 	"log"
 	"log/slog"
@@ -43,6 +46,18 @@ func main() {
 	if err != nil {
 		logger.Error(err.Error())
 	}
+
+	producerClient, err := producer.NewKafkaProducer(os.Getenv("KAFKA_TOPIC"), logger)
+	if err != nil {
+		logger.Error("Error launching Kafka Producer" + err.Error())
+	}
+	fmt.Print(producerClient)
+
+	consumerClient, err := consumerLib.NewKafkaConsumer(os.Getenv("KAFKA_TOPIC"), logger)
+	if err != nil {
+		logger.Error("Error launching Kafka Consumer" + err.Error())
+	}
+	fmt.Print(consumerClient)
 
 	handler := application.NewHTTPHandler(name, versionName, db, fileService, logger)
 	app.RegisterHTTPHandler(handler)
