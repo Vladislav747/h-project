@@ -7,6 +7,7 @@ import (
 	"h-project/db"
 	"h-project/internal/entity"
 	"h-project/internal/file"
+	"h-project/internal/kafka/producer"
 	"io/ioutil"
 	"log/slog"
 	"net/http"
@@ -14,16 +15,18 @@ import (
 )
 
 type CompanyHandler struct {
-	store       *db.DB
-	fileService file.Service
-	logger      *slog.Logger
+	store          *db.DB
+	fileService    file.Service
+	producerClient producer.DataProducer
+	logger         *slog.Logger
 }
 
-func NewCompanyHandler(store *db.DB, fileService file.Service, logger *slog.Logger) *CompanyHandler {
+func NewCompanyHandler(store *db.DB, fileService file.Service, producerClient producer.DataProducer, logger *slog.Logger) *CompanyHandler {
 	return &CompanyHandler{
-		store:       store,
-		fileService: fileService,
-		logger:      logger,
+		store:          store,
+		fileService:    fileService,
+		producerClient: producerClient,
+		logger:         logger,
 	}
 }
 
@@ -77,6 +80,8 @@ func (h *CompanyHandler) HandleCreateCompany(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	h.producerClient.ProduceData(company)
 
 	err = h.store.AddCompany(&company)
 	if err != nil {

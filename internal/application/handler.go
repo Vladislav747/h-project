@@ -5,13 +5,14 @@ import (
 	"h-project/db"
 	"h-project/internal/file"
 	"h-project/internal/gateways/openapi"
+	"h-project/internal/kafka/producer"
 	"log/slog"
 	"net/http"
 )
 
-func NewHTTPHandler(serviceName, serviceVersion string, db *db.DB, fileService file.Service, logger *slog.Logger) http.Handler {
+func NewHTTPHandler(serviceName, serviceVersion string, db *db.DB, fileService file.Service, producerClient producer.DataProducer, logger *slog.Logger) http.Handler {
 
-	companyHandler := api.NewCompanyHandler(db, fileService, logger)
+	companyHandler := api.NewCompanyHandler(db, fileService, producerClient, logger)
 	fileHandler := file.NewFileHandler(fileService, logger)
 
 	mux := http.NewServeMux()

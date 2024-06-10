@@ -1,7 +1,11 @@
 package consumer
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/sirupsen/logrus"
+	"h-project/internal/entity"
 	"h-project/internal/kafka/constants"
 	"log/slog"
 	"os"
@@ -18,9 +22,10 @@ type kafkaConsumer struct {
 }
 
 func NewKafkaConsumer(topic string, logger *slog.Logger) (*kafkaConsumer, error) {
-	logger.Debug("Starting kafka consumer")
+	logger.Info("Starting kafka consumer")
+	logger.Info("Topic: ", topic)
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": os.Getenv("KAFKA_BOOTSTRAP_SERVERS"),
+		"bootstrap.servers": os.Getenv(""),
 		"group.id":          constants.KafkaGroupId,
 		"auto.offset.reset": "earliest",
 	})
@@ -43,50 +48,71 @@ func NewKafkaConsumer(topic string, logger *slog.Logger) (*kafkaConsumer, error)
 func (c *kafkaConsumer) Start() {
 	c.logger.Info("kafka transport started")
 	c.isRunning = true
-	//c.readMessageLoop()
+	fmt.Println(c.consumer.IsClosed(), "IsClosed")
+
+	go c.readMessageLoop()
 }
 
-func (c *kafkaConsumer) Stop() {
+func (c *kafkaConsumer) Stop() error {
 	c.logger.Info("kafka transport stopped")
 	c.isRunning = false
+	return nil
 }
 
-//func (c *kafkaConsumer) readMessageLoop() {
-//	for c.isRunning {
-//		msg, err := c.consumer.ReadMessage(-1)
-//		if err != nil {
-//			c.logger.Error("kafka consume error " + err.Error())
-//			continue
-//		}
-//		fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
-//		var data entity.Company
-//		if err := json.Unmarshal(msg.Value, &data); err != nil {
-//			logrus.Errorf("JSON serialization error %s", err)
-//			//Что отправить в прометеус кол-во неудачных сообщений
-//			//разграничивать ошибки
-//			// circuit breaker -
-//			continue
-//		}
-//		//try := 0
-//		var (
-//			distance float64
-//		)
-//		//for {
-//		//	distance, err = c.calcService.CalculateDistance(data)
-//		//	if err == nil {
-//		//
-//		//	}
-//		//	try = try + 1
-//		//	if try > 10 {
-//		//		logrus.Warnf("Error calculating distance, try %d, error %s", try, err)
-//		//	}
-//		//
-//		//}
-//
-//		if err != nil {
-//			logrus.Errorf("Calculation error %s", err)
-//			continue
-//		}
-//		fmt.Println(distance, "distance")
-//	}
-//}
+func (c *kafkaConsumer) Commit() error {
+	offsets, err := c.consumer.Commit()
+	if err != nil {
+		c.logger.Error("Error committing offsets", "error", err)
+		return err
+	}
+
+	c.logger.Info("Offsets committed", "offsets", offsets)
+	return nil
+}
+
+func (c *kafkaConsumer) readMessageLoop() {
+	c.logger.Info("readMessageLoop launched")
+	for c.isRunning {
+		fmt.Println(c.isRunning, "here")
+		msg, err := c.consumer.ReadMessage(-1)
+		fmt.Println(msg, "msg")
+		if err != nil {
+			c.logger.Error("kafka consume error " + err.Error())
+			continue
+		}
+		fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+		var data entity.Company
+		if err := json.Unmarshal(msg.Value, &data); err != nil {
+			logrus.Errorf("JSON serialization error %s", err)
+			//Что отправить в прометеус кол-во неудачных сообщений
+			//разграничивать ошибки
+			// circuit breaker -
+			continue
+		}
+		fmt.Println(msg.Value, "value")
+
+		fmt.Println(data, "data")
+
+		// Commit the offsets
+		if err := c.Commit(); err != nil {
+			c.logger.Error("Error committing offsets", "error", err)
+			// Handle the error or continue without committing
+		}
+
+		//try := 0
+		//var (
+		//	distance float64
+		//)
+		//for {
+		//	distance, err = c.calcService.CalculateDistance(data)
+		//	if err == nil {
+		//
+		//	}
+		//	try = try + 1
+		//	if try > 10 {
+		//		logrus.Warnf("Error calculating distance, try %d, error %s", try, err)
+		//	}
+		//
+		//}
+	}
+}

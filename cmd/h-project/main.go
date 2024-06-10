@@ -20,8 +20,8 @@ func main() {
 	name := version.APIName
 	versionName := version.APIVersion
 	ctx := context.Background()
-	dsn := os.Getenv("DSN")
-	log.Println(dsn, "DSN")
+	dsn := os.Getenv("DATABASE_URL")
+	log.Println(dsn, "DATABASE_URL")
 	db, err := dbSqlx.NewDB(ctx, dsn)
 
 	if err != nil {
@@ -59,15 +59,20 @@ func main() {
 	}
 	fmt.Print(consumerClient)
 
-	handler := application.NewHTTPHandler(name, versionName, db, fileService, logger)
+	handler := application.NewHTTPHandler(name, versionName, db, fileService, producerClient, logger)
 	app.RegisterHTTPHandler(handler)
 
 	app.AddCloser(func() error {
 		return db.Close(logger)
 	})
 
+	app.AddCloser(func() error {
+		return consumerClient.Stop()
+	})
+
 	logger.Info("App Starting")
 
+	consumerClient.Start()
 	app.Run()
 }
 

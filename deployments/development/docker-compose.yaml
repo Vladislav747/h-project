@@ -20,12 +20,11 @@ x-kafka-broker-base: &kafka_broker_base
 
 services:
     go-app:
+      container_name: go-app
       build:
         context: ../..
         dockerfile: deployments/development/Dockerfile
       restart: unless-stopped
-      networks:
-        - development
       ports:
         - ${APPLICATION_PORT}:${APPLICATION_PORT}
       volumes:
@@ -34,9 +33,12 @@ services:
         - .env
       depends_on:
         - postgres
+      networks:
+        - development
 
     postgres:
       restart: always
+      container_name: postgres
       image: postgres:13.1-alpine
       env_file:
         - .env
