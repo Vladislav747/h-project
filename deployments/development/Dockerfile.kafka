@@ -1,0 +1,7 @@
+FROM confluentinc/cp-kafka:7.5.3
+
+USER root
+
+WORKDIR /etc/kafka
+
+CMD ["/etc/confluent/docker/run"]
